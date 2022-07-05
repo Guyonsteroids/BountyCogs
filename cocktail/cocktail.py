@@ -1,4 +1,3 @@
-from ast import alias
 import discord
 from redbot.core import commands
 #from redbot.core import Config
