@@ -11,9 +11,10 @@ class VCLogger(commands.Cog):
 
         default_guild = {
             "state": True,
+            "empty_only": True,
             "logchannel": None,
             "join_msg": "{member.mention} joined the vc",
-            "leave_msg": "{member.mention} left the vc",
+            "leave_msg": "{member.mention} left the vc"            
         }
 
         self.config.register_guild(**default_guild)
@@ -24,6 +25,7 @@ class VCLogger(commands.Cog):
         leave_msg = await self.config.guild(member.guild).leave_msg()
         logchannel = await self.config.guild(member.guild).logchannel()
         state = await self.config.guild(member.guild).state()
+        empty_only = await self.config.guild(member.guild).empty_only()
 
         if not state:
             return
@@ -32,24 +34,52 @@ class VCLogger(commands.Cog):
             return
 
         if before.channel is None and after.channel is not None:
+            print(f"before chan count XXX after chan count {len(after.channel.members)}")
             try: 
                 channel = self.bot.get_channel(logchannel)
-                if "{member.mention}" in join_msg:
-                    await channel.send(join_msg.format(member=member))
-                elif join_msg != "":
-                    await channel.send(join_msg)
+                
+                if empty_only == False:
+                    if "{member.mention}" in join_msg:
+                        await channel.send(join_msg.format(member=member))
+                    elif join_msg != "":
+                        await channel.send(join_msg)
+
+                elif (empty_only == True) and len(after.channel.members) == 1:
+                    if "{member.mention}" in join_msg:
+                        await channel.send(join_msg.format(member=member))
+                    elif join_msg != "":
+                        await channel.send(join_msg)
+                
+                else:
+                    return
+
             except:
                 return
 
         elif before.channel is not None and after.channel is None:
+            print(f"before chan count {len(before.channel.members)} after chan count XXX")
             try:
                 channel = self.bot.get_channel(logchannel)
-                if "{member.mention}" in leave_msg:
-                    await channel.send(leave_msg.format(member=member))
-                elif leave_msg != "":
-                    await channel.send(leave_msg)
-                else:
-                    return
+                if empty_only == False:
+                    if "{member.mention}" in leave_msg:
+                        await channel.send(leave_msg.format(member=member))
+
+                    elif leave_msg != "":
+                        await channel.send(leave_msg)
+
+                    else:
+                        return
+
+                elif (empty_only == True) and len(before.channel.members) == 0:
+                    if "{member.mention}" in leave_msg:
+                        await channel.send(leave_msg.format(member=member))
+
+                    elif leave_msg != "":
+                        await channel.send(leave_msg)
+
+                    else:
+                        return
+
             except:
                 return
 
@@ -69,6 +99,15 @@ class VCLogger(commands.Cog):
         """
         await self.config.guild(ctx.guild).state.set(state)
         await ctx.send(f"VC Logger state set to {state}")
+
+    @vcloggersettings.command(name="emptyonly")
+    @commands.is_owner()
+    async def vcloggersettings_emptyonly(self, ctx, state: bool):
+        """
+        Toggle the emptyonly setting of the VC Logger cog
+        """
+        await self.config.guild(ctx.guild).empty_only.set(state)
+        await ctx.send(f"VC Logger emptyonly setting set to {state}")
 
     @vcloggersettings.command(name="logchannel")
     @commands.is_owner()
@@ -97,4 +136,25 @@ class VCLogger(commands.Cog):
         await self.config.guild(ctx.guild).leave_msg.set(msg)
         await ctx.send(f"VC Logger leave message set to {msg}")
 
-    
+    @vcloggersettings.command(name="show")
+    @commands.is_owner()
+    async def vcloggersettings_show(self, ctx):
+        """
+        Shows current configurations for the cog
+        """
+
+        join_msg = await self.config.guild(ctx.guild).join_msg()
+        leave_msg = await self.config.guild(ctx.guild).leave_msg()
+        logchannel = await self.config.guild(ctx.guild).logchannel()
+        state = await self.config.guild(ctx.guild).state()
+        empty_only = await self.config.guild(ctx.guild).empty_only()
+
+        embed = discord.Embed(title = "VCLogger cog settings", color=discord.Color.random())
+        embed.add_field(name="State:", value=state, inline = True)
+        embed.add_field(name="Empty Only:", value=empty_only, inline = True)
+        embed.add_field(name="Log Channel:", value=f"<#{logchannel}>", inline = True)
+        embed.add_field(name="Join Message:", value=join_msg, inline = False)
+        embed.add_field(name="Leave Message:", value=leave_msg, inline = False)
+
+        await ctx.send(embed=embed)
+ 
