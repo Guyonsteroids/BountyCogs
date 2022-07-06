@@ -81,7 +81,7 @@ class VCLogger(commands.Cog):
 
     @vcloggersettings.command(name="joinmsg")
     @commands.is_owner()
-    async def vcloggersettings_joinmsg(self, ctx, *, msg: str):
+    async def vcloggersettings_joinmsg(self, ctx, *, msg: str = None):
         """
         Set the join message for the VC Logger cog
         """
@@ -90,7 +90,7 @@ class VCLogger(commands.Cog):
 
     @vcloggersettings.command(name="leavemsg")
     @commands.is_owner()
-    async def vcloggersettings_leavemsg(self, ctx, *, msg: str):
+    async def vcloggersettings_leavemsg(self, ctx, *, msg: str = None):
         """
         Set the leave message for the VC Logger cog
         """
