@@ -1,7 +1,9 @@
 import discord
 from redbot.core import Config, commands, checks
 try:
+    from redbot.core.utils.menus DEFAULT_CONTROLS
     from slashtags import menu
+
 except ModuleNotFoundError:
     from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
