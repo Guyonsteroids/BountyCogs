@@ -522,12 +522,14 @@ class Afk(commands.Cog):
         mess = await self.config.user(author).IDLE_MESSAGE()
         if mess:
             await self.config.user(author).IDLE_MESSAGE.set(False)
+            await self.config.user(author).TIME.set(0)
             msg = "The bot will no longer reply for you when you're idle."
         else:
             if message is None:
                 await self.config.user(author).IDLE_MESSAGE.set((" ", delete_after))
             else:
                 await self.config.user(author).IDLE_MESSAGE.set((message, delete_after))
+            await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
             msg = "The bot will now reply for you when you're idle."
         await ctx.send(msg)
 
@@ -546,12 +548,14 @@ class Afk(commands.Cog):
         mess = await self.config.user(author).OFFLINE_MESSAGE()
         if mess:
             await self.config.user(author).OFFLINE_MESSAGE.set(False)
+            await self.config.user(author).TIME.set(0)
             msg = "The bot will no longer reply for you when you're offline."
         else:
             if message is None:
                 await self.config.user(author).OFFLINE_MESSAGE.set((" ", delete_after))
             else:
                 await self.config.user(author).OFFLINE_MESSAGE.set((message, delete_after))
+            await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
             msg = "The bot will now reply for you when you're offline."
         await ctx.send(msg)
 
@@ -570,12 +574,14 @@ class Afk(commands.Cog):
         mess = await self.config.user(author).DND_MESSAGE()
         if mess:
             await self.config.user(author).DND_MESSAGE.set(False)
+            await self.config.user(author).TIME.set(0)
             msg = "The bot will no longer reply for you when you're set to do not disturb."
         else:
             if message is None:
                 await self.config.user(author).DND_MESSAGE.set((" ", delete_after))
             else:
                 await self.config.user(author).DND_MESSAGE.set((message, delete_after))
+            await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
             msg = "The bot will now reply for you when you're set to do not disturb."
         await ctx.send(msg)
 
@@ -594,12 +600,14 @@ class Afk(commands.Cog):
         mess = await self.config.user(author).STREAMING_MESSAGE()
         if mess:
             await self.config.user(author).STREAMING_MESSAGE.set(False)
+            await self.config.user(author).TIME.set(0)
             msg = "The bot will no longer reply for you when you're mentioned while streaming."
         else:
             if message is None:
                 await self.config.user(author).STREAMING_MESSAGE.set((" ", delete_after))
             else:
                 await self.config.user(author).STREAMING_MESSAGE.set((message, delete_after))
+            await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
             msg = "The bot will now reply for you when you're mentioned while streaming."
         await ctx.send(msg)
 
@@ -618,9 +626,11 @@ class Afk(commands.Cog):
         mess = await self.config.user(author).LISTENING_MESSAGE()
         if mess:
             await self.config.user(author).LISTENING_MESSAGE.set(False)
+            await self.config.user(author).TIME.set(0)
             msg = "The bot will no longer reply for you when you're mentioned while listening to Spotify."
         else:
             await self.config.user(author).LISTENING_MESSAGE.set((message, delete_after))
+            await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
             msg = "The bot will now reply for you when you're mentioned while listening to Spotify."
         await ctx.send(msg)
 
@@ -643,6 +653,7 @@ class Afk(commands.Cog):
         if game.lower() in mess:
             del mess[game.lower()]
             await self.config.user(author).GAME_MESSAGE.set(mess)
+            await self.config.user(author).TIME.set(0)
             msg = f"The bot will no longer reply for you when you're playing {game}."
         else:
             if message is None:
@@ -650,6 +661,7 @@ class Afk(commands.Cog):
             else:
                 mess[game.lower()] = (message, delete_after)
             await self.config.user(author).GAME_MESSAGE.set(mess)
+            await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
             msg = f"The bot will now reply for you when you're playing {game}."
         await ctx.send(msg)
 
