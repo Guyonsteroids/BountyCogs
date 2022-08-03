@@ -589,7 +589,7 @@ class Afk(commands.Cog):
                 await self.config.user(author).DND_MESSAGE.set((" ", delete_after))
             else:
                 await self.config.user(author).DND_MESSAGE.set((message, delete_after))
-                await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
+            await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
             #msg = "The bot will now reply for you when you're set to do not disturb."
             await ctx.tick()
 
