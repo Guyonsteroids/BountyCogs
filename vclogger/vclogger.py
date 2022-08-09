@@ -34,7 +34,6 @@ class VCLogger(commands.Cog):
             return
 
         if before.channel is None and after.channel is not None:
-            print(f"before chan count XXX after chan count {len(after.channel.members)}")
             try: 
                 channel = self.bot.get_channel(logchannel)
                 
@@ -57,7 +56,6 @@ class VCLogger(commands.Cog):
                 return
 
         elif before.channel is not None and after.channel is None:
-            print(f"before chan count {len(before.channel.members)} after chan count XXX")
             try:
                 channel = self.bot.get_channel(logchannel)
                 if empty_only == False:
