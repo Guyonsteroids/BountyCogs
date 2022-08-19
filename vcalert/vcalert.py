@@ -39,7 +39,7 @@ class VCAlert(commands.Cog):
                     for id in ping_list:
                         peopletoping += f"<@{id}> "
 
-                    alert_message = f"{member.name} has joined {after.channel.name}\n{peopletoping} - {member.id} - {after.channel.mention}                    "
+                    alert_message = f"\n{member.name} has joined {after.channel.name}\n{member.mention} - UserID: {member.id} - Voice channel: {after.channel.name}\n\n{peopletoping}"
                     
                     await logchannel.send(alert_message)
 
@@ -62,17 +62,23 @@ class VCAlert(commands.Cog):
         await ctx.send(f"VC Alert state set to {state}")
 
     @vcalert.command()
-    async def add(self, ctx, ids: Greedy[int]):
+    async def add(self, ctx, ids: Greedy[int] = None):
         """
         Adds user IDs to the alert list
         """
         guild_group = self.config.guild(ctx.guild)
-        for id in ids:
-            async with guild_group.alert_list() as alert_list:
-                alert_list.append(id)
-                alert_list = list(set(alert_list)) # filter duplicates
-
-        await ctx.send(f"{ids} added to the alert list")
+        embed=discord.Embed(color=discord.Color.random())
+        if ids is None:
+            embed.add_field(name=f"Failed", value=f"No IDs provided")
+            await ctx.send(embed=embed)
+        else:
+            for id in ids:
+                async with guild_group.alert_list() as alert_list:
+                    alert_list.append(id)
+                    alert_list = [*set(alert_list)] # filter duplicates
+                    
+            embed.add_field(name=f"Success:", value=f"{ids} Added to alert list")
+            await ctx.send(embed=embed)
 
     @vcalert.command()
     async def remove(self, ctx, ids: Greedy[int]):
@@ -80,16 +86,24 @@ class VCAlert(commands.Cog):
         Removes user IDs from the alert list
         """
         guild_group = self.config.guild(ctx.guild)
+        success = []
         failed=[]
+        embed=discord.Embed(color=discord.Color.random())
         for id in ids:
             async with guild_group.alert_list() as alert_list:
                 try:
                     alert_list.remove(id)
+                    success.append(id)
                 except:
                     failed.append(id)
-                    failed = list(set(failed)) # filter duplicates
+                    failed = [*set(failed)] # filter duplicates
+        if len(success) > 0:
+            embed.add_field(name="Success:", value=f"{success} removed from the alert list")
+
+        if len(failed) > 0:
+            embed.add_field(name="Failed:", value=f"Failed to remove {failed} from the alert list. Please try again")
         
-        await ctx.send(f"{ids} removed from the alert list\nFailed to remove {failed}. Please try again")
+        await ctx.send(embed=embed)
 
     @vcalert.command()
     async def list(self, ctx):
@@ -97,42 +111,55 @@ class VCAlert(commands.Cog):
         Lists the user IDs in the alert list
         """
         alert_list = await self.config.guild(ctx.guild).alert_list()
-        await ctx.send(f"{alert_list}")
+        alert_list = [*set(alert_list)]
+        if alert_list == []:
+            alert_list = "No IDs in the alert list"
+        embed=discord.Embed(title="Alert List:", description=f"{alert_list}", color=discord.Color.random())
+        
+        await ctx.send(embed=embed)
 
     @vcalert.command()
-    async def padd(self, ctx, ids: Greedy[int]):
+    async def padd(self, ctx, ids: Greedy[int] = None):
         """
         Adds user IDs to the ping list
         """
         guild_group = self.config.guild(ctx.guild)
+        embed=discord.Embed(color=discord.Color.random())
 
-        if ids == "":
+        if ids == None:
             async with guild_group.ping_list() as ping_list:
-                ping_list.append(ctx.author.id)
-                ping_list = list(set(ping_list)) # filter duplicates
-        
+                ids=ctx.author.id
+                ping_list.append(ids)
+                ping_list = [*set(ping_list)] # filter duplicates
+                
         else:
             for id in ids:
                 async with guild_group.ping_list() as ping_list:
                     ping_list.append(id)
-                    ping_list = list(set(ping_list)) # filter duplicates
+                    ping_list = [*set(ping_list)] # filter duplicates
+                    
+        embed.add_field(name="Success:", value=f"{ids} added to the ping list")
 
-        await ctx.send(f"{ids} added to the ping list")
+        await ctx.send(embed=embed)
 
     @vcalert.command()
-    async def premove(self, ctx, ids: Greedy[int]):
+    async def premove(self, ctx, ids: Greedy[int] = None):
         """
         Removes user IDs from the ping list
         """
         guild_group = self.config.guild(ctx.guild)
+        success=[]
         failed=[]
-        if ids == "":
+        embed=discord.Embed(color=discord.Color.random())
+        if ids == None:
             async with guild_group.ping_list() as ping_list:
+                ids=ctx.author.id
                 try:
-                    ping_list.remove(ctx.author.id)
+                    ping_list.remove(ids)
+                    success.append(ids)
                 except:
-                    failed.append(ctx.author.id)
-                    failed = list(set(failed)) # filter duplicates
+                    failed.append(ids)
+                    failed = [*set(failed)] # filter duplicates
 
         else:
             for id in ids:
@@ -141,9 +168,16 @@ class VCAlert(commands.Cog):
                         ping_list.remove(id)
                     except:
                         failed.append(id)
-                        failed = list(set(failed)) # filter duplicates
+                        failed = [*set(failed)] # filter duplicates
+                        
+        if len(success) > 0:
+            embed.add_field(name="Success:", value=f"{success} removed from the ping list")
+
+        if len(failed) > 0:
+            embed.add_field(name="Failed:", value=f"Failed to remove {failed} from the ping list. Please try again")
         
-        await ctx.send(f"{ids} removed from the ping list\nFailed to remove {failed}. Please try again")
+        await ctx.send(embed=embed)
+        
 
     @vcalert.command()
     async def plist(self, ctx):
@@ -151,26 +185,19 @@ class VCAlert(commands.Cog):
         Lists the user IDs in the ping list
         """
         ping_list = await self.config.guild(ctx.guild).ping_list()
-        await ctx.send(f"{ping_list}")   
+        ping_list = [*set(ping_list)]
+        if ping_list == []:
+            ping_list = "No IDs in the alert list"
+        embed=discord.Embed(title="Ping List:", description=f"{ping_list}", color=discord.Color.random())
+        await ctx.send(embed=embed)   
 
     @vcalert.command()
-    async def logchannel(self, ctx, channel: int):
+    async def logchannel(self, ctx, channel: int = None):
         """
         Set the log channel for the VC Alert cog
         """
         if channel is None:
-            await self.config.guild(ctx.guild).logchannel.set(None)
-            await ctx.send("Log channel set to None")
+            await ctx.send(f"VC Alert is currently logging to <#{channel}>")
         else:
             await self.config.guild(ctx.guild).logchannel.set(channel)
             await ctx.send(f"VC Alert log channel set to <#{channel}>")
-
-    
-    
-        
-        
-
-        
-    
-
-    
