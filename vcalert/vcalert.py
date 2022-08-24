@@ -176,6 +176,7 @@ class VCAlert(commands.Cog):
                 async with guild_group.ping_list() as ping_list:
                     try:
                         ping_list.remove(id)
+                        success.append(ids)
                     except:
                         failed.append(id)
 
