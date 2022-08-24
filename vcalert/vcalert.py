@@ -39,7 +39,7 @@ class VCAlert(commands.Cog):
                     for id in ping_list:
                         peopletoping += f"<@{id}> "
 
-                    alert_message = f"\n{member.name} has joined {after.channel.name}\n{member.mention} - UserID: {member.id} - Voice channel: {after.channel.name}\n\n{peopletoping}"
+                    alert_message = f"\n{member.name} has joined {after.channel.name}\n{member.mention} - UserID: {member.id} - Voice channel: {after.channel.mention}\n\n{peopletoping}"
                     
                     await logchannel.send(alert_message)
 
