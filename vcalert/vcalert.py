@@ -68,15 +68,19 @@ class VCAlert(commands.Cog):
         """
         guild_group = self.config.guild(ctx.guild)
         embed=discord.Embed(color=discord.Color.random())
+        ids = [*set(ids)]
+
         if ids is None:
             embed.add_field(name=f"Failed", value=f"No IDs provided")
             await ctx.send(embed=embed)
         else:
             for id in ids:
                 async with guild_group.alert_list() as alert_list:
-                    alert_list.append(id)
-                    alert_list = [*set(alert_list)] # filter duplicates
-                    
+                    if id not in alert_list:
+                        alert_list.append(id)
+                    else:
+                        pass
+
             embed.add_field(name=f"Success:", value=f"{ids} Added to alert list")
             await ctx.send(embed=embed)
 
@@ -89,14 +93,17 @@ class VCAlert(commands.Cog):
         success = []
         failed=[]
         embed=discord.Embed(color=discord.Color.random())
+        ids = [*set(ids)]
+
         for id in ids:
             async with guild_group.alert_list() as alert_list:
-                try:
+                if id in alert_list:
                     alert_list.remove(id)
                     success.append(id)
-                except:
+                else:
                     failed.append(id)
                     failed = [*set(failed)] # filter duplicates
+
         if len(success) > 0:
             embed.add_field(name="Success:", value=f"{success} removed from the alert list")
 
@@ -111,9 +118,10 @@ class VCAlert(commands.Cog):
         Lists the user IDs in the alert list
         """
         alert_list = await self.config.guild(ctx.guild).alert_list()
-        alert_list = [*set(alert_list)]
+    
         if alert_list == []:
             alert_list = "No IDs in the alert list"
+
         embed=discord.Embed(title="Alert List:", description=f"{alert_list}", color=discord.Color.random())
         
         await ctx.send(embed=embed)
@@ -125,19 +133,22 @@ class VCAlert(commands.Cog):
         """
         guild_group = self.config.guild(ctx.guild)
         embed=discord.Embed(color=discord.Color.random())
+        ids = [*set(ids)]
 
         if ids == None:
             async with guild_group.ping_list() as ping_list:
-                ids=ctx.author.id
-                ping_list.append(ids)
-                ping_list = [*set(ping_list)] # filter duplicates
+                if id not in ping_list:
+                    ids=ctx.author.id
+                    ping_list.append(ids)
                 
         else:
             for id in ids:
                 async with guild_group.ping_list() as ping_list:
-                    ping_list.append(id)
-                    ping_list = [*set(ping_list)] # filter duplicates
-                    
+                    if id not in ping_list:
+                        ping_list.append(id)
+                    else:
+                        pass
+
         embed.add_field(name="Success:", value=f"{ids} added to the ping list")
 
         await ctx.send(embed=embed)
@@ -159,8 +170,7 @@ class VCAlert(commands.Cog):
                     success.append(ids)
                 except:
                     failed.append(ids)
-                    failed = [*set(failed)] # filter duplicates
-
+                
         else:
             for id in ids:
                 async with guild_group.ping_list() as ping_list:
@@ -168,7 +178,7 @@ class VCAlert(commands.Cog):
                         ping_list.remove(id)
                     except:
                         failed.append(id)
-                        failed = [*set(failed)] # filter duplicates
+
                         
         if len(success) > 0:
             embed.add_field(name="Success:", value=f"{success} removed from the ping list")
@@ -185,7 +195,6 @@ class VCAlert(commands.Cog):
         Lists the user IDs in the ping list
         """
         ping_list = await self.config.guild(ctx.guild).ping_list()
-        ping_list = [*set(ping_list)]
         if ping_list == []:
             ping_list = "No IDs in the alert list"
         embed=discord.Embed(title="Ping List:", description=f"{ping_list}", color=discord.Color.random())
