@@ -1,6 +1,7 @@
 import discord
 from redbot.core import commands
 from redbot.core import Config
+import random
 
 class VCLogger(commands.Cog):
     """A VCLogger cog"""
@@ -13,6 +14,7 @@ class VCLogger(commands.Cog):
             "state": True,
             "empty_only": True,
             "logchannel": None,
+            "responses": [],
             "join_msg": "{member.mention} joined the vc",
             "leave_msg": "{member.mention} left the vc"            
         }
@@ -26,6 +28,7 @@ class VCLogger(commands.Cog):
         logchannel = await self.config.guild(member.guild).logchannel()
         state = await self.config.guild(member.guild).state()
         empty_only = await self.config.guild(member.guild).empty_only()
+        responses = await self.config.guild(member.guild).responses()
 
         if not state:
             return
@@ -42,12 +45,18 @@ class VCLogger(commands.Cog):
                         await channel.send(join_msg.format(member=member))
                     elif join_msg != "":
                         await channel.send(join_msg)
+                    
+                    if len(responses) != 0:
+                            await channel.send(random.choice(responses))
 
                 elif (empty_only == True) and len(after.channel.members) == 1:
                     if "{member.mention}" in join_msg:
                         await channel.send(join_msg.format(member=member))
                     elif join_msg != "":
                         await channel.send(join_msg)
+                    
+                    if len(responses) != 0:
+                            await channel.send(random.choice(responses))
                 
                 else:
                     return
@@ -134,6 +143,48 @@ class VCLogger(commands.Cog):
         await self.config.guild(ctx.guild).leave_msg.set(msg)
         await ctx.send(f"VC Logger leave message set to {msg}")
 
+    @vcloggersettings.command(name="response")
+    @commands.is_owner()
+    async def vcloggersettings_response(self, ctx, *, response: str = None):
+        """
+        Set a response that the bot randomly picks from when a user joins a vc
+        """
+        guild_group = self.config.guild(ctx.guild)
+        async with guild_group.responses() as responses:
+            if response in responses:
+                responses.remove(response)
+                await ctx.send("Response removed")
+            else:
+                responses.append(response)
+                await ctx.send("Response added")
+    
+    @vcloggersettings.command(name="responseslist")
+    @commands.is_owner()
+    async def vcloggersettings_responseslist(self, ctx):
+        """
+        List all responses that the bot randomly picks from when a user joins a vc
+        """
+        responses = str(await self.config.guild(ctx.guild).responses())
+        responses.replace("[", "")
+        responses.replace("]", "")
+        responses=""
+        for i in responses.split(","):
+            responses += i + "\n"
+        
+        if responses == "":
+            responses = "No responses set"
+        
+        await ctx.send(responses)
+    
+    @vcloggersettings.command(name="reset")
+    @commands.is_owner()
+    async def vcloggersettings_reset(self, ctx):
+        """
+        Reset the VC Logger cog
+        """
+        await self.config.guild(ctx.guild).clear()
+        await ctx.send("VC Logger settings reset")
+
     @vcloggersettings.command(name="show")
     @commands.is_owner()
     async def vcloggersettings_show(self, ctx):
@@ -155,4 +206,3 @@ class VCLogger(commands.Cog):
         embed.add_field(name="Leave Message:", value=leave_msg, inline = False)
 
         await ctx.send(embed=embed)
- 
