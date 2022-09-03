@@ -133,15 +133,15 @@ class VCAlert(commands.Cog):
         """
         guild_group = self.config.guild(ctx.guild)
         embed=discord.Embed(color=discord.Color.random())
-        ids = [*set(ids)]
-
+        
         if ids == None:
+            ids=ctx.author.id
             async with guild_group.ping_list() as ping_list:
-                if id not in ping_list:
-                    ids=ctx.author.id
+                if ids not in ping_list:
                     ping_list.append(ids)
                 
         else:
+            ids = [*set(ids)]
             for id in ids:
                 async with guild_group.ping_list() as ping_list:
                     if id not in ping_list:
