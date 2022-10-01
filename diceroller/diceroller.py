@@ -24,19 +24,19 @@ class DiceRoller(commands.Cog):
         return chunks
 
     def convert_modifier(self, modifier):
-        alphabets = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+        whitelistedchars = ['+', '-', '*', "/", '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         if modifier == "":
             return 0
 
         else:
             try:
                 modifier = modifier.lower()
-                for i in alphabets:
-                    if i in modifier:
+                for i in modifier:
+                    if i not in whitelistedchars:
                         modifier.replace(i, "")
                 
                 try:
-                    modifier = eval(modifier)
+                    modifier = int(eval(modifier))
                     return modifier
                 except:
                     return 0
@@ -110,5 +110,3 @@ class DiceRoller(commands.Cog):
 
         except:
             await ctx.send(f"Invalid input. Please follow the format: `{list(await self.bot.get_prefix(ctx.message))[0]}roll <number>df<modifier>` [reason]")
-
-        
