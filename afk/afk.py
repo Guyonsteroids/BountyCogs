@@ -1,6 +1,9 @@
 import discord
 from redbot.core import Config, commands, checks
-from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
+try:
+    from slashtags import menu
+except ModuleNotFoundError:
+    from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 
 from typing import Optional, Literal
 import datetime
@@ -10,9 +13,9 @@ IMAGE_LINKS = re.compile(r"(http[s]?:\/\/[^\"\']*\.(?:png|jpg|jpeg|gif|png))")
 
 
 class Afk(commands.Cog):
-    """
-    A cog for being afk and responding when idiots ping you.
-    """
+    """Le Afk cog
+    Originally called Away but changed to avoid conflicts with the Away cog
+    Check out the original [here](https://github.com/aikaterna/aikaterna-cogs)"""
     default_global_settings = {"ign_servers": []}
     default_guild_settings = {"TEXT_ONLY": False, "BLACKLISTED_MEMBERS": []}
     default_user_settings = {
@@ -83,7 +86,7 @@ class Afk(commands.Cog):
         user_config = self.config.user(author)
         await user_config.PINGS.clear()
 
-    async def pingmenu(self, ctx, author):
+    async def pingmenu(self,ctx,author):
         """
             Returns a menu of the people who pinged you
         """
@@ -91,16 +94,12 @@ class Afk(commands.Cog):
         menulist = []
         async with user_config.PINGS() as pingslist:
             for ping in pingslist:
-                embed=discord.Embed(
-                    title=f"Pings you recieved while you were away {ctx.author.name}", 
-                    description=f"<a:mel_whitedot:930948764674449498> {ping['whopinged']} [pinged you in]({ping['msgurl']}) {ping['channel']} {ping['timestamp']}",
-                    color=ctx.author.color
-                )
-                # embed.add_field(name="Who pinged?:", value=ping["whopinged"], inline=False)
-                # embed.add_field(name="Message URL:", value=f"[Click Here]({ping['msgurl']})", inline=False)
-                # embed.add_field(name="Channel:", value=ping["channel"], inline=False)
-                # embed.add_field(name="When?:", value=ping["timestamp"], inline=False)
-                embed.set_footer(text=f"Page: {(ping['pageno'])}/{len(pingslist)}")
+                embed=discord.Embed(title="Ping Menu", description="Here's a menu with the list of people who pinged you while you were AFK",color= discord.Color.random())
+                embed.add_field(name="Who pinged?:", value=ping["whopinged"], inline=False)
+                embed.add_field(name="Message URL:", value=f"[Click Here]({ping['msgurl']})", inline=False)
+                embed.add_field(name="Channel:", value=ping["channel"], inline=False)
+                embed.add_field(name="When?:", value=ping["timestamp"], inline=False)
+                embed.set_footer(text=f"Page no: {(ping['pageno'])}/{len(pingslist)}")
                 menulist.append(embed)
 
         await menu(ctx, menulist, DEFAULT_CONTROLS, timeout=15)
@@ -287,12 +286,6 @@ class Afk(commands.Cog):
         if not guild or not message.mentions or message.author.bot:
             return
         if not message.channel.permissions_for(guild.me).send_messages:
-            return
-        if await self.bot.cog_disabled_in_guild(self, guild):
-            return
-        if not await self.bot.ignored_channel_or_guild(message):
-            return
-        if not await self.bot.allowed_by_whitelist_blacklist(message.author):
             return
 
         blocked_guilds = await self.config.ign_servers()
@@ -496,8 +489,8 @@ class Afk(commands.Cog):
         if mess:
             await self.config.user(author).MESSAGE.set(False)
             await self.config.user(author).TIME.set(0)
-            # msg = "You're now back."
-            await ctx.tick()
+            msg = "You're now back."
+            await ctx.send(msg)
             if len(user_config["PINGS"]) != 0:
                 await self.pingmenu(ctx,author)
                 await self.remove_ping(author)
@@ -509,8 +502,8 @@ class Afk(commands.Cog):
             else:
                 await self.config.user(author).MESSAGE.set((message, delete_after))
             await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
-            # msg = "You're now set as away."
-            await ctx.tick()
+            msg = "You're now set as away."
+            await ctx.send(msg)
 
     @commands.command(name="idle")
     async def idle_(self, ctx, delete_after: Optional[int] = None, *, message: str = None):
@@ -527,17 +520,14 @@ class Afk(commands.Cog):
         mess = await self.config.user(author).IDLE_MESSAGE()
         if mess:
             await self.config.user(author).IDLE_MESSAGE.set(False)
-            await self.config.user(author).TIME.set(0)
-            await ctx.tick()
-            #msg = "The bot will no longer reply for you when you're idle."
+            msg = "The bot will no longer reply for you when you're idle."
         else:
             if message is None:
                 await self.config.user(author).IDLE_MESSAGE.set((" ", delete_after))
             else:
                 await self.config.user(author).IDLE_MESSAGE.set((message, delete_after))
-            await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
-            #msg = "The bot will now reply for you when you're idle."
-            await ctx.tick()
+            msg = "The bot will now reply for you when you're idle."
+        await ctx.send(msg)
 
     @commands.command(name="offline")
     async def offline_(self, ctx, delete_after: Optional[int] = None, *, message: str = None):
@@ -554,17 +544,14 @@ class Afk(commands.Cog):
         mess = await self.config.user(author).OFFLINE_MESSAGE()
         if mess:
             await self.config.user(author).OFFLINE_MESSAGE.set(False)
-            await self.config.user(author).TIME.set(0)
-            #msg = "The bot will no longer reply for you when you're offline."
-            await ctx.tick()
+            msg = "The bot will no longer reply for you when you're offline."
         else:
             if message is None:
                 await self.config.user(author).OFFLINE_MESSAGE.set((" ", delete_after))
             else:
                 await self.config.user(author).OFFLINE_MESSAGE.set((message, delete_after))
-            await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
-            #msg = "The bot will now reply for you when you're offline."
-            await ctx.tick()
+            msg = "The bot will now reply for you when you're offline."
+        await ctx.send(msg)
 
     @commands.command(name="dnd", aliases=["donotdisturb"])
     async def donotdisturb_(self, ctx, delete_after: Optional[int] = None, *, message: str = None):
@@ -581,17 +568,14 @@ class Afk(commands.Cog):
         mess = await self.config.user(author).DND_MESSAGE()
         if mess:
             await self.config.user(author).DND_MESSAGE.set(False)
-            await self.config.user(author).TIME.set(0)
-            #msg = "The bot will no longer reply for you when you're set to do not disturb."
-            await ctx.tick()
+            msg = "The bot will no longer reply for you when you're set to do not disturb."
         else:
             if message is None:
                 await self.config.user(author).DND_MESSAGE.set((" ", delete_after))
             else:
                 await self.config.user(author).DND_MESSAGE.set((message, delete_after))
-            await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
-            #msg = "The bot will now reply for you when you're set to do not disturb."
-            await ctx.tick()
+            msg = "The bot will now reply for you when you're set to do not disturb."
+        await ctx.send(msg)
 
     @commands.command(name="streaming")
     async def streaming_(self, ctx, delete_after: Optional[int] = None, *, message: str = None):
@@ -608,17 +592,14 @@ class Afk(commands.Cog):
         mess = await self.config.user(author).STREAMING_MESSAGE()
         if mess:
             await self.config.user(author).STREAMING_MESSAGE.set(False)
-            await self.config.user(author).TIME.set(0)
-            #msg = "The bot will no longer reply for you when you're mentioned while streaming."
-            await ctx.tick()
+            msg = "The bot will no longer reply for you when you're mentioned while streaming."
         else:
             if message is None:
                 await self.config.user(author).STREAMING_MESSAGE.set((" ", delete_after))
             else:
                 await self.config.user(author).STREAMING_MESSAGE.set((message, delete_after))
-                await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
-            #msg = "The bot will now reply for you when you're mentioned while streaming."
-            await ctx.tick()
+            msg = "The bot will now reply for you when you're mentioned while streaming."
+        await ctx.send(msg)
 
     @commands.command(name="listening")
     async def listening_(self, ctx, delete_after: Optional[int] = None, *, message: str = " "):
@@ -635,14 +616,11 @@ class Afk(commands.Cog):
         mess = await self.config.user(author).LISTENING_MESSAGE()
         if mess:
             await self.config.user(author).LISTENING_MESSAGE.set(False)
-            await self.config.user(author).TIME.set(0)
-            #msg = "The bot will no longer reply for you when you're mentioned while listening to Spotify."
-            await ctx.tick()
+            msg = "The bot will no longer reply for you when you're mentioned while listening to Spotify."
         else:
             await self.config.user(author).LISTENING_MESSAGE.set((message, delete_after))
-            await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
-            #msg = "The bot will now reply for you when you're mentioned while listening to Spotify."
-            await ctx.tick()
+            msg = "The bot will now reply for you when you're mentioned while listening to Spotify."
+        await ctx.send(msg)
 
     @commands.command(name="gaming")
     async def gaming_(self, ctx, game: str, delete_after: Optional[int] = None, *, message: str = None):
@@ -663,18 +641,15 @@ class Afk(commands.Cog):
         if game.lower() in mess:
             del mess[game.lower()]
             await self.config.user(author).GAME_MESSAGE.set(mess)
-            await self.config.user(author).TIME.set(0)
-            #msg = f"The bot will no longer reply for you when you're playing {game}."
-            await ctx.tick()
+            msg = f"The bot will no longer reply for you when you're playing {game}."
         else:
             if message is None:
                 mess[game.lower()] = (" ", delete_after)
             else:
                 mess[game.lower()] = (message, delete_after)
             await self.config.user(author).GAME_MESSAGE.set(mess)
-            await self.config.user(author).TIME.set(round(datetime.datetime.now().timestamp()))
-            #msg = f"The bot will now reply for you when you're playing {game}."
-            await ctx.tick()
+            msg = f"The bot will now reply for you when you're playing {game}."
+        await ctx.send(msg)
 
     @commands.command(name="toggleaway")
     @commands.guild_only()
@@ -782,4 +757,3 @@ class Afk(commands.Cog):
             await ctx.send(embed=em)
         else:
             await ctx.send(f"{author.display_name} away settings\n" + msg)
-            
