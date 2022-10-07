@@ -59,6 +59,19 @@ class Redditparser(commands.Cog):
             content = f"<{image}>"
 
         await ctx.send(content=content, embed=embed)
+        
+        async def upload_media(self, media, title):
+        
+        mail = await self.config.mail()
+        password = await self.config.password()
+
+        api = StreamableApi(mail, password)
+
+        vid = dict(api.upload_video(media, title))
+
+        await asyncio.sleep(20)
+        os.remove(media)     
+        return vid["shortcode"]
 
     async def get_text(self, ctx, json_data, post_id):
         document = json_data['posts']['models'][post_id]['media']['richtextContent']['document'][0]
