@@ -1,16 +1,16 @@
-import asyncio
 import discord
-from redbot.core import commands
-from redbot.core.config import Config
 import os
 import json
-from bs4 import BeautifulSoup
-import requests
+import datetime
+import asyncio
+import requests #Playing both sides here hehe
 import aiohttp
+
+from bs4 import BeautifulSoup
+from pystreamable import StreamableApi
+
 import moviepy.editor as mpe
 from moviepy.video.io.ffmpeg_tools import *
 
-#from pystreamable import StreamableApi
-from .utils import sanitize
-#import flickr_api
-from async_gfycat.client import GfycatClient
+from redbot.core import commands
+from redbot.core.config import Config
